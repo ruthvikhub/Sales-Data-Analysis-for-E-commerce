@@ -1,0 +1,77 @@
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+# Replace 'sales_data.csv' with the actual path to your e-commerce dataset
+data = pd.read_csv('sales_data.csv')
+
+# Display first few rows of the dataset
+print(data.head())
+
+# Data Cleaning
+# Handle missing values (if any)
+data.fillna(0, inplace=True)
+
+# Remove duplicates (if any)
+data.drop_duplicates(inplace=True)
+
+# Convert 'Order Date' column to datetime format
+data['Order Date'] = pd.to_datetime(data['Order Date'])
+
+# Feature Engineering
+# Add a new column for total revenue (quantity * price)
+data['Total Revenue'] = data['Quantity'] * data['Price']
+
+# Aggregating Sales Metrics
+# Total revenue
+total_revenue = data['Total Revenue'].sum()
+print(f"Total Revenue: ${total_revenue:.2f}")
+
+# Average order value (AOV)
+avg_order_value = data['Total Revenue'].mean()
+print(f"Average Order Value: ${avg_order_value:.2f}")
+
+# Top-selling products by revenue
+top_products = data.groupby('Product')['Total Revenue'].sum().sort_values(ascending=False).head(10)
+print("\nTop 10 Products by Revenue:")
+print(top_products)
+
+# Most valuable customers by total spending
+top_customers = data.groupby('Customer ID')['Total Revenue'].sum().sort_values(ascending=False).head(10)
+print("\nTop 10 Customers by Total Spending:")
+print(top_customers)
+
+# Sales Trends Over Time
+# Resample data to get monthly revenue
+monthly_revenue = data.resample('M', on='Order Date')['Total Revenue'].sum()
+
+# Plot monthly sales revenue
+plt.figure(figsize=(10,6))
+plt.plot(monthly_revenue.index, monthly_revenue.values, marker='o', linestyle='-', color='b')
+plt.title('Monthly Sales Revenue')
+plt.xlabel('Month')
+plt.ylabel('Revenue ($)')
+plt.grid(True)
+plt.show()
+
+# Top Products Visualization
+plt.figure(figsize=(10,6))
+sns.barplot(x=top_products.values, y=top_products.index, palette='Blues_d')
+plt.title('Top 10 Products by Revenue')
+plt.xlabel('Revenue ($)')
+plt.ylabel('Product')
+plt.show()
+
+# Distribution of Average Order Value
+plt.figure(figsize=(10,6))
+sns.histplot(data['Total Revenue'], bins=30, kde=True, color='green')
+plt.title('Distribution of Order Values')
+plt.xlabel('Order Value ($)')
+plt.ylabel('Frequency')
+plt.show()
+
+# Save cleaned and analyzed data to a new CSV file
+data.to_csv('cleaned_sales_data.csv', index=False)
